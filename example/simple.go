@@ -1,18 +1,3 @@
-# ExecutionTime
- 
-Execution Time middleware for Hertz framework.
-
-- Adds an handler cost time using the `X-Execution-Time` header. 
-
-## Install
-
-```shell
-go get github.com/lwch/executiontime
-```
-
-## Usage
-
-```go
 package main
 
 import (
@@ -39,4 +24,3 @@ func main() {
 
 	h.Spin()
 }
-```
