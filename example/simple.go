@@ -1,26 +1,23 @@
 package main
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/app/server"
-	"github.com/cloudwego/hertz/pkg/common/utils"
-	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/gin-gonic/gin"
 	"github.com/lwch/executiontime"
 )
 
 func main() {
-	h := server.Default()
+	h := gin.Default()
 
 	h.Use(
 		executiontime.New(),
 	)
 
 	// Example ping request.
-	h.GET("/ping", func(ctx context.Context, c *app.RequestContext) {
-		c.JSON(consts.StatusOK, utils.H{"ping": "pong"})
+	h.GET("/ping", func(g *gin.Context) {
+		g.JSON(http.StatusOK, gin.H{"ping": "pong"})
 	})
 
-	h.Spin()
+	h.Run()
 }

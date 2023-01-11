@@ -3,13 +3,11 @@ package executiontime
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/cloudwego/hertz/pkg/app"
-	hzconfig "github.com/cloudwego/hertz/pkg/common/config"
-	"github.com/cloudwego/hertz/pkg/common/test/assert"
-	"github.com/cloudwego/hertz/pkg/common/ut"
-	"github.com/cloudwego/hertz/pkg/route"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -17,39 +15,43 @@ const (
 	customHeaderKey = "customKey"
 )
 
-func emptySuccessResponse(ctx context.Context, c *app.RequestContext) {
-	c.String(http.StatusOK, "")
+func emptySuccessResponse(g *gin.Context) {
+	g.String(http.StatusOK, "")
 }
 
-func hertzHandler(middleware app.HandlerFunc) *route.Engine {
-	r := route.NewEngine(hzconfig.NewOptions([]hzconfig.Option{}))
+func handler(middleware gin.HandlerFunc) *gin.Engine {
+	r := gin.New()
 	r.Use(middleware)
 	r.GET("/", emptySuccessResponse)
-
 	return r
 }
 
 func TestCreateNewRequestID(t *testing.T) {
-	r := hertzHandler(New())
-	w := ut.PerformRequest(r, http.MethodGet, "/", nil)
+	r := handler(New())
 
-	assert.DeepEqual(t, http.StatusOK, w.Code)
-	assert.NotEqual(t, "", string(w.Header().Peek(headerXExecutionTime)))
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NotEmpty(t, w.Header().Get(headerXExecutionTime))
 }
 
 func TestRequestIDWithCustomHeaderKey(t *testing.T) {
-	r := hertzHandler(New(
+	r := handler(New(
 		WithCustomHeaderStrKey(customHeaderKey),
 	))
 
-	w := ut.PerformRequest(r, http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/", nil)
+	r.ServeHTTP(w, req)
 
-	assert.DeepEqual(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	var found bool
-	w.Header().VisitAll(func(key, value []byte) {
-		if string(key) == customHeaderKey {
+	for k := range w.Header() {
+		if k == customHeaderKey {
 			found = true
 		}
-	})
-	assert.Assert(t, !found)
+	}
+	assert.False(t, found)
 }

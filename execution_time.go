@@ -1,10 +1,9 @@
 package executiontime
 
 import (
-	"context"
 	"time"
 
-	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/gin-gonic/gin"
 )
 
 var headerXExecutionTime string
@@ -12,7 +11,7 @@ var headerXExecutionTime string
 // Option for execution time
 type Option func(*config)
 
-func New(opts ...Option) app.HandlerFunc {
+func New(opts ...Option) gin.HandlerFunc {
 	cfg := &config{
 		headerKey: "X-Execution-Time",
 	}
@@ -21,13 +20,13 @@ func New(opts ...Option) app.HandlerFunc {
 		opt(cfg)
 	}
 
-	return func(ctx context.Context, c *app.RequestContext) {
+	return func(g *gin.Context) {
 		begin := time.Now()
-		c.Next(ctx)
+		g.Next()
 		cost := time.Since(begin)
 
 		headerXExecutionTime = cfg.headerKey
-		c.Header(headerXExecutionTime, cost.String())
+		g.Header(headerXExecutionTime, cost.String())
 	}
 }
 
