@@ -34,7 +34,7 @@ func TestCreateNewRequestID(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.NotEmpty(t, w.Header().Get(headerXExecutionTime))
+	assert.NotEmpty(t, w.Header().Get(defaultHeaderKey))
 }
 
 func TestRequestIDWithCustomHeaderKey(t *testing.T) {

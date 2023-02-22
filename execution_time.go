@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var headerXExecutionTime string
+const defaultHeaderKey = "X-Execution-Time"
 
 // Option for execution time
 type Option func(*config)
 
 func New(opts ...Option) gin.HandlerFunc {
 	cfg := &config{
-		headerKey: "X-Execution-Time",
+		headerKey: defaultHeaderKey,
 	}
 
 	for _, opt := range opts {
@@ -25,8 +25,7 @@ func New(opts ...Option) gin.HandlerFunc {
 		g.Next()
 		cost := time.Since(begin)
 
-		headerXExecutionTime = cfg.headerKey
-		g.Header(headerXExecutionTime, cost.String())
+		g.Header(cfg.headerKey, cost.String())
 	}
 }
 
